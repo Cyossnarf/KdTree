@@ -1,6 +1,8 @@
 package kdtree;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class KdTree<Point extends PointI>
 {
@@ -35,6 +37,19 @@ public class KdTree<Point extends PointI>
 		}
 	}
 	
+	public class PointComparator implements Comparator<Point> {
+		private int d;
+		
+		public PointComparator(int dim) {
+			super();
+			this.d = dim;
+		}
+		
+		public int compare(Point p1, Point p2) {
+			return p1.get(this.d) - p2.get(this.d);
+		}
+	}
+	
 	/////////////////
     /// Attributs ///
     /////////////////
@@ -63,14 +78,65 @@ public class KdTree<Point extends PointI>
 		this.dim_ = dim;
 		this.n_points_ = points.size();
 		
-		//TODO: replace by a balanced initialization
-		this.n_points_=0;
-		for(Point p : points) {
-			insert(p);
-		}
-	
+		this.root_ = buildTree(points, 0, max_depth);
 	}
-	  
+	
+	/** Recursively create a balanced subtree. 
+	 *
+	 *  If too many point remains when the maximal depth is reached, 
+	 *  replace the remaining point by their barycenter.
+	 *
+	 * @param points the points to be inserted in the subtree
+	 * @param depth the depth of the root of the subtree once inserted in the main tree
+	 * @param max_depth the maximal depth of the kdtree
+	 * @return the KdNode that correspond to the root of the subtree
+	 */
+	private KdNode buildTree(ArrayList<Point> points, int depth, int max_depth) 
+	{
+		KdNode newNode;
+		
+	    // TERMINAISON : 
+	    // si points.size()==0 retourner null (sous-arbre vide)
+		int n = points.size();
+		if (n==0) {
+			return null;
+		}
+		
+		// Calcul de la dimension de la coupe (il est possible de commencer par
+	    // d=depth%3)
+		int d = depth%3;
+
+	    // TRAITEMENT SPECIAL pour le problème de la quantization
+	    // if depth == max_depth créer un noeud feuille comportant le barycentre des points restant
+		if (depth==max_depth) {
+			Point barycentre = (Point) points.get(0).zero();
+			for (Point p : points) {
+				barycentre.add(p);
+			}
+			barycentre.div(n);
+			newNode = new KdNode(barycentre, d);
+			return newNode;
+		}
+		
+	    // Trier le tableau de point en fonction de la dimension choisi
+	    // (cela permet d’obtenir la médiane et son indice)
+		PointComparator juge = new PointComparator(d);
+		Collections.sort(points, juge);
+
+	    // Partager le tableau en deux tableaux (indice inférieur et supérieur à médiane)
+	    // left_points, right_points
+		ArrayList<Point> left_points = new ArrayList<Point>(points.subList(0, n/2));
+		ArrayList<Point> right_points = new ArrayList<Point>(points.subList(n/2 + 1, n));
+
+	    // Créer récursivement deux sous arbres
+		KdNode left_child = buildTree(left_points,depth+1,max_depth);
+		KdNode right_child = buildTree(right_points,depth+1,max_depth);
+
+	    // Créer le nouveau noeud de profondeur depth et le retourner
+		newNode = new KdNode(points.get(n/2), d, left_child, right_child);
+		return newNode;
+	}
+	
 	/////////////////
 	/// Accessors ///
 	/////////////////

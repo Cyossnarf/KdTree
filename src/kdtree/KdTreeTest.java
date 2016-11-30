@@ -56,4 +56,18 @@ public class KdTreeTest {
 		}
 	}
 	
+	@Test
+	public void testKdTree() {
+		KdTree<Point3i> pommier = new KdTree<Point3i>(3);
+		assertEquals(pommier.dimension(), 3);
+		assertEquals(pommier.nb_points(), 0);
+		ArrayList<Point2i> liste = new ArrayList<Point2i>();
+		liste.add(new Point2i(0, 1));
+		liste.add(new Point2i(2, 3));
+		liste.add(new Point2i(4, 5));
+		KdTree<Point2i> prunier = new KdTree<Point2i>(2, liste, Integer.MAX_VALUE);
+		assertEquals(prunier.dimension(), 2);
+		assertEquals(prunier.nb_points(), 3);
+	}
+	
 }
