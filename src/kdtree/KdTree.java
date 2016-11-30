@@ -104,7 +104,7 @@ public class KdTree<Point extends PointI>
 		
 		// Calcul de la dimension de la coupe (il est possible de commencer par
 	    // d=depth%3)
-		int d = depth%3;
+		int d = depth%dim_;
 
 	    // TRAITEMENT SPECIAL pour le problème de la quantization
 	    // if depth == max_depth créer un noeud feuille comportant le barycentre des points restant
